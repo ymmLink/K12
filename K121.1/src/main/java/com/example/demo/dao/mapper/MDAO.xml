@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.MDAO">
+	<insert id="addMaterial" parameterType="com.example.demo.entity.Material">
+		insert into material(story,label,img_path,user_id,collect_count,print_count,zan_count,publish_date,state) 
+		values(#{story},#{label},#{imgPath},#{userId},#{collectCount},#{printCount},
+		#{zanCount},#{publishDate},#{state})
+	</insert>
+	<insert id="addGuanZhu" parameterType="com.example.demo.entity.Guanzhu">
+		insert into guanzhu(user_id,guanzhu_id,start_date,end_date,state) 
+		select #{userId},#{guanzhuId},#{startDate},#{endDate},#{state} from DUAL 
+		where not exists (select 1 from guanzhu where user_id=#{userId} and guanzhu_id=#{guanzhuId} and state=1)
+	</insert>
+	<update id="cancelGuanzhu">
+		update guanzhu set end_date=#{now},state=0 where user_id=#{userId} and guanzhu_id=#{guanzhuId} and state=1
+	</update>
+	<select id="getGZUser" parameterType="Long" resultMap="userRM">
+		select u.id id,u.avatar_url avatar_url,u.nick_name nick_name,u.guanzhu guanzhu,u.fans fans  
+		from guanzhu gz left join user u on gz.guanzhu_id=u.id where gz.user_id=#{userId} and gz.state=1 and gz.guanzhu_id=u.id ;
+	</select>
+	<resultMap type="com.example.demo.entity.User" id="userRM">
+		<id column="id" property="id"/>
+		<result column="account" property="account"/>
+		<result column="password" property="password"/>
+		<result column="nick_name" property="nickName"/>
+		<result column="avatar_url" property="avatarUrl"/>
+		<result column="sex" property="sex"/>
+		<result column="city" property="city"/>
+		<result column="province" property="province"/>
+		<result column="country" property="country"/>
+		<result column="real_name" property="realName"/>
+		<result column="phone_number" property="phoneNumber"/>
+		<result column="email" property="email"/>
+		<result column="union_id" property="unionId"/>
+		<result column="web_open_id" property="webOpenId"/>
+		<result column="official_open_id" property="officialOpenId"/>
+		<result column="zone" property="zone"/>
+		<result column="uid" property="uid"/>
+		<result column="signature" property="signature"/>
+		<result column="identity" property="identity"/>
+		<result column="stage" property="stage"/>
+		<result column="guanzhu" property="guanzhu"/>
+		<result column="fans" property="fans"/>
+		<result column="be_collect" property="beCollect"/>
+		<result column="be_print" property="bePrint"/>
+	</resultMap>
+	<select id="getGZMeterial" resultType="com.example.demo.entity.vo.Materialvo">
+		select u.id as uId,u.nick_name as nickName,u.avatar_url as avatarUrl,m.id as mId,m.user_id as userId,
+		m.story,m.label,m.img_path as imgPath,m.collect_count as collectCount,m.print_count as printCount,
+		m.zan_count as zanCount,m.publish_date as publishDate from material m left join 
+		user u on m.user_id=u.id where m.user_id in 
+		<foreach collection="uList" open="(" close=")" item="user" separator=",">
+			#{user.id}
+		</foreach>
+		and m.state=0 
+		order by m.publish_date desc limit #{pageStart},#{pageSize}
+	</select>
+	<resultMap type="com.example.demo.entity.Material" id="materialRM">
+		<id column="id" property="id"/>
+		<result column="story" property="story"/>
+		<result column="label" property="label"/>
+		<result column="img_path" property="imgPath"/>
+		<result column="collect_count" property="collectCount"/>
+		<result column="print_count" property="printCount"/>
+		<result column="zan_count" property="zanCount"/>
+		<result column="publish_date" property="publishDate"/>
+		<result column="state" property="state"/>
+	</resultMap>
+	<select id="getGZMcount" resultType="int">
+		select count(*) from material where user_id in 
+		<foreach collection="uList" open="(" close=")" item="user" separator=",">
+			#{user.id}
+		</foreach>
+		and state=0 
+		order by publish_date desc
+	</select>
+	<select id="getMcount" resultType="int">
+		select count(*) from material where state=0;
+	</select>
+	<select id="getMidList" resultType="Long">
+		select id from material where state=0
+	</select>
+	<select id="getTJList" resultType="com.example.demo.entity.vo.Materialvo">
+		select u.id as uId,u.nick_name as nickName,u.avatar_url as avatarUrl,m.id as mId,m.user_id as userId,
+		m.story,m.label,m.img_path as imgPath,m.collect_count as collectCount,m.print_count as printCount,
+		m.zan_count as zanCount,m.publish_date as publishDate from material m left join 
+		user u on m.user_id=u.id where m.id in 
+		<foreach collection="idList" open="(" separator="," close=")" item="id">
+			#{id}
+		</foreach>
+		and m.state=0
+	</select>
+	<select id="getGZbyuId" resultType="com.example.demo.entity.Guanzhu">
+		select * from guanzhu where user_id=#{uId} and guanzhu_id=#{guanzhuId} and state=1
+	</select>
+	<select id="getUserById" resultMap="userRM">
+		select * from user where id=#{uId}
+	</select>
+	<select id="getMcountBylabel" resultType="int">
+		select count(*) from material where label=#{label} and state=0;
+	</select>
+	<select id="getMBylabel" resultType="com.example.demo.entity.vo.Materialvo">
+		select u.id as uId,u.nick_name as nickName,u.avatar_url as avatarUrl,m.id as mId,m.user_id as userId,
+		m.story,m.label,m.img_path as imgPath,m.collect_count as collectCount,m.print_count as printCount,
+		m.zan_count as zanCount,m.publish_date as publishDate from material m left join 
+		user u on m.user_id=u.id where m.label=#{label} and state=0 order by 
+		m.publish_date desc limit #{pageStart},#{pageSize}
+	</select>
+	<select id="getQuestionByCon" resultType="com.example.demo.entity.Questions">
+		select id,title,option_a as optionA,option_b as optionB,option_c as optionC,option_d as optionD,option_e as optionE,answer1,answer2,
+		parse,qtpye,diff,md5,subjectId,gradeId,knowledges,area,year,paperTpye,source,fromSite,isSub,isNormal,isKonw,tiid,Similarity as similarity,isunique,md52 
+		from questions 
+		<where>
+			<foreach collection="array" item="con">
+				and title like '%${con}%'
+			</foreach>
+		</where>
+	</select>
+	<select id="getGList" resultType="com.example.demo.entity.Catetree">
+		select Rec rec,id,xdid,chidid,chapter_id chapteId,title,hasChild,question_count questionCount from catetree where xdid=#{xdid} and chidid=#{chidid} and chapter_id=#{id} and question_count>0 order by rec asc
+	</select>
+	<select id="getCList" resultType="com.example.demo.entity.Catetree">
+		select Rec rec,id,xdid,chidid,chapter_id chapteId,title,hasChild,question_count questionCount from catetree where xdid=#{xdid} and chidid=#{chidid} and chapter_id=0 and question_count>0 order by rec asc
+	</select>
+	<select id="getQCList" resultType="com.example.demo.entity.Catetree">
+		select Rec rec,id,xdid,chidid,chapter_id chapteId,title,hasChild,question_count questionCount from catetree where xdid=#{xdid} and chidid=#{chidid} and chapter_id=#{id} order by rec asc
+	</select>
+	<select id="getEList" resultType="com.example.demo.entity.Edition">
+		select DISTINCT(c.editionId) as id,e.`Name` as name from chapter c,edition e where c.subjectId=#{subjectId} and c.pharseId=#{parseId} and c.editionId=e.id order by editionId asc
+	</select>
+	<select id="getXueke" resultType="com.example.demo.entity.Xueke">
+		select * from xueke where xd=#{parseId} order by id asc
+	</select>
+	<select id="getSubject" resultType="com.example.demo.entity.Subject">
+		SELECT DISTINCT(c.subjectId) as subjectId,s.subjectName as subjectName,s.pinyin as pinyin,c.pharseId as parseId from chapter c,`subject` s where c.pharseId=#{parseId} and c.subjectId=s.subjectId order by c.subjectId asc
+	</select>
+	<!--  
+	<select id="getBCbyBookId" resultType="com.example.demo.entity.Bookcategory">
+		select * from bookcategory where bookId=#{0} order by seq asc
+	</select>
+	-->
+	<select id="getChapterVo" parameterType="com.example.demo.entity.Grade" resultType="com.example.demo.entity.vo.ChapterVo">
+		select DISTINCT(chapterOrder),chapter 
+		from chapter where subjectId=#{subjectId} and pharseId=#{parseId} and gradeId=#{gradeId} and editionId=#{editionId} order by chapterOrder asc
+	</select>
+	<select id="getUnit" resultType="com.example.demo.entity.Unit">
+		select DISTINCT(unitOrder),unit
+		from chapter where subjectId=#{grade.subjectId} and pharseId=#{grade.parseId} and gradeId=#{grade.gradeId} and editionId=#{grade.editionId} and chapterOrder=#{chapterOrder} and unitOrder!=0 order by unitOrder asc 
+	</select>
+	<select id="getChapter"  resultType="com.example.demo.entity.Chapter">
+		select id,subjectId,pharseId,gradeId,editionId,chapter,unit,section,knowledgeId,chapterOrder,unitOrder,sectionOrder 
+		from chapter where subjectId=#{grade.subjectId} and pharseId=#{grade.parseId} and gradeId=#{grade.gradeId} and editionId=#{grade.editionId} and chapterOrder=#{chapterOrder} and unitOrder=#{unitOrder} order by sectionOrder asc
+	</select>
+	<select id="getBcName" resultType="String">
+		select bcName from bookcategory where bookId=#{0} group by bcName
+	</select>
+	<select id="getQuestionByBC" resultMap="questionsRM">
+		SELECT * FROM ${tableName} 
+		where xdid=#{xdid} and chidid=#{chidid} and catetreerec=#{catetreerec} and explanation_text!='' and explanation_text!='&amp;nbsp;' and explanation_text is not null or xdid=#{xdid} and chidid=#{chidid} and catetreerec=#{catetreerec} and knowledge_text!='' and knowledge_text is not null or xdid=#{xdid} and chidid=#{chidid} and catetreerec=#{catetreerec} and answer_text!='' and answer_text is not null order by Rec limit #{pageStart},#{pageSize}
+	</select>
+	<resultMap type="com.example.demo.entity.Zujuanquestion" id="questionsRM">
+		<result column="Rec" property="rec"/>
+		<result column="question_id" property="questionId"/>
+		<result column="question_source" property="questionSource"/>
+		<result column="question_text" property="questionText"/>
+		<result column="channel_type" property="channelType"/>
+		<result column="difficult_name" property="difficultName"/>
+		<result column="exam_name" property="examName"/>
+		<result column="question_type" property="questionType"/>
+		<result column="save_num" property="saveNum"/>
+		<result column="explanation_text" property="explanationText"/>
+		<result column="knowledge_text" property="knowledgeText"/>
+		<result column="answer_text" property="answerText"/>
+	</resultMap>
+	<select id="getQuestionCount" resultType="int">
+		select count(*) from ${tableName} where xdid=#{xdid} and chidid=#{chidid} and catetreerec=#{catetreerec} and explanation_text!='' and explanation_text!='&amp;nbsp;' and explanation_text is not null or xdid=#{xdid} and chidid=#{chidid} and catetreerec=#{catetreerec} and knowledge_text!='' and knowledge_text is not null or xdid=#{xdid} and chidid=#{chidid} and catetreerec=#{catetreerec} and answer_text!='' and answer_text is not null
+	</select>
+	<insert id="addQC" parameterType="com.example.demo.entity.Questioncollect">
+		insert into question_collect(uid,qid,subject_id,pharse_id,create_date) 
+		select #{uid},#{qid},#{subjectId},#{pharseId},#{createDate} from DUAL  
+		where not exists (select 1 from question_collect where uid=#{uid} and qid=#{qid})
+	</insert>
+	<delete id="delQC" >
+		delete from question_collect where uid=#{uid} and qid=#{qid};
+	</delete>
+	<select id="getSCState" resultType="boolean">
+		select count(*) from question_collect where uid=#{uid} and qid=#{qid}
+	</select>
+	<select id="getMyPharse" parameterType="int" resultType="com.example.demo.entity.Pharse">
+		select DISTINCT(qc.pharse_id),p.pharseName from question_collect qc,pharse p where qc.pharse_id=p.pharseId
+	</select>
+	<select id="getMySubject" resultType="com.example.demo.entity.Subject">
+		SELECT DISTINCT(qc.subject_id) as subjectId,s.subjectName,s.pinyin,qc.pharse_id as parseId 
+		from question_collect qc,`subject` s where qc.uid=#{uid} and qc.pharse_id=#{pharseId} and qc.subject_id=s.subjectId order by qc.subject_id
+	</select> 
+	<select id="getmyCQ" resultMap="questionsRM">
+		SELECT q.* FROM  question_collect qc,#{tableName} q 
+		where qc.uid=#{uid} and qc.pharse_id=#{xdid} and qc.subject_id=#{chidid} and qc.qid=q.Rec ORDER BY qc.qid
+	</select>
+	<update id="saveAdmin" parameterType="com.example.demo.entity.AdminEntity">
+		update admin 
+		<set>
+			<if test="password!=null">
+				password=#{password},
+			</if>
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="phone!=null">
+				phone=#{phone},
+			</if>
+			<if test="img!=null">
+				img=#{img},
+			</if>
+		</set>
+		where account=#{account}
+	</update>
+	<insert id="addAdmin" parameterType="com.example.demo.entity.AdminEntity">
+		insert account,password,name,phone,img into admin values(#{account},#{password},#{name},#{phone},#{img})
+	</insert>
+	<!--  
+	<select id="getAnswer" parameterType="int" resultType="com.example.demo.entity.Answer">
+		select * from answer where qId = #{qid}
+	</select>
+	-->
+	<update id="editUser" parameterType="com.example.demo.entity.User">
+		update user 
+		<set>
+			<if test="nickName!=null">
+				nick_name=#{nickName},
+			</if>
+			<if test="avatarUrl!=null">
+				avatar_url=#{avatarUrl},
+			</if>
+			<if test="sex!=null">
+				sex=#{sex},
+			</if>
+			<if test="zone!=null">
+				zone=#{zone},
+			</if>
+			<if test="signature!=null">
+				signature=#{signature},
+			</if>
+			<if test="identity!=null">
+				identity=#{identity},
+			</if>
+			<if test="stage!=null">
+				stage=#{stage},
+			</if>
+			<if test="password!=null">
+				password=#{password},
+			</if>
+			<if test="phoneNumber!=null">
+				phone_number=#{phoneNumber},
+			</if>
+			<if test="unionId!=null">
+				union_id=#{unionId},
+			</if>
+			<if test="city!=null">
+				city=#{city},
+			</if>
+			<if test="province!=null">
+				province=#{province},
+			</if>
+			<if test="country!=null">
+				union_id=#{country},
+			</if>
+			<if test="officialOpenId!=null">
+				official_open_id=#{officialOpenId},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+	<select id="getMyFans" parameterType="Long" resultMap="userRM">
+		select u.id id,u.avatar_url avatar_url,u.nick_name nick_name,u.guanzhu guanzhu,u.fans fans  
+		from guanzhu gz left join user u on gz.user_id=u.id where gz.guanzhu_id=#{id} and gz.state=1 and gz.user_id=u.id; 
+	</select>
+	<insert id="addSC" parameterType="com.example.demo.entity.Shoucang">
+		insert into shoucang(m_id,u_id,create_date) 
+		select #{mId},#{uId},#{createDate} from DUAL 
+		where not exists (select 1 from shoucang where m_id=#{mId} and u_id=#{uId})
+	</insert>
+	<update id="addMsc" parameterType="Long" >
+		update material set collect_count=collect_count+1 where id=#{mId}
+	</update>
+	<update id="addUsc" parameterType="Long">
+		update user set be_collect=be_collect+1 where id=#{uId}
+	</update>
+	<delete id="removeSC" >
+		delete from shoucang where m_id=#{mId} and u_id=#{uId}
+	</delete>
+	<update id="subtractMsc" parameterType="Long">
+		update material set collect_count=collect_count-1 where id=#{mId}
+	</update>
+	<update id="subtractUsc" parameterType="Long">
+		update user set be_collect=be_collect-1 where id=#{uId}
+	</update>
+	<update id="addUGZ" parameterType="Long">
+		update user set guanzhu=guanzhu+1 where id=#{uId}
+	</update>
+	<update id="addFans" parameterType="Long">
+		update user set fans=fans+1 where id=#{uId}
+	</update>
+	<update id="substractUGZ" parameterType="Long">
+		update user set guanzhu=guanzhu-1 where id=#{uId}
+	</update>
+	<update id="substractFans" parameterType="Long">
+		update user set fans=fans-1 where id=#{uId}
+	</update>
+	<update id="addMPrint" parameterType="Long">
+		update material set print_count=print_count+1 where id=#{mId} 
+	</update>
+	<update id="addUPrint" parameterType="Long">
+		update user set be_print=be_print+1 where id=#{uId}
+	</update>
+	<select id="getMyMList" parameterType="Long" resultMap="materialRM">
+		select * from material where user_id=#{uId} and state=0
+	</select>
+	<select id="getUserByCon" parameterType="com.example.demo.entity.User" resultMap="userRM">
+		select * from user 
+		<where>
+			<if test="account!=null">
+				and account=#{account}
+			</if>
+			<if test="password!=null">
+				and password=#{password}
+			</if>
+			<if test="phoneNumber!=null">
+				and phone_number=#{phoneNumber}
+			</if>
+			<if test="unionId!=null">
+				and union_id=#{unionId}
+			</if>
+			<if test="uid!=null">
+				and uid=#{uid}
+			</if>
+			<if test="officialOpenId!=null">
+				and official_open_id=#{officialOpenId}
+			</if>
+		</where>
+	</select>
+	<insert id="addUser" parameterType="com.example.demo.entity.User">
+		insert into user (account,password,nick_name,avatar_url,sex,city,province,country,real_name,phone_number,email,adress,union_id,web_open_id,official_open_id,zone,uid,signature,identity,stage,guanzhu,fans,be_collect,be_print,coin) 
+		values(#{account},#{password},#{nickName},#{avatarUrl},#{sex},#{city},#{province},#{country},#{realName},#{phoneNumber},#{email},#{adress},#{unionId},#{webOpenId},#{officialOpenId},#{zone},#{uid},#{signature},#{identity},#{stage},#{guanzhu},#{fans},#{beCollect},#{bePrint},#{coin})
+	</insert>
+	<select id="getMyMCollect" resultType="com.example.demo.entity.vo.Materialvo">
+		select u.id as uId,u.nick_name as nickName,u.avatar_url as avatarUrl,m.id as mId,m.user_id as userId,
+		m.story,m.label,m.img_path as imgPath,m.collect_count as collectCount,m.print_count as printCount,
+		m.zan_count as zanCount,m.publish_date as publishDate from shoucang sc,material m,user u where sc.u_id=#{uId} and sc.m_id=m.id and m.user_id=u.id and m.state=0 order by sc.create_date desc limit #{pageStart},#{pageSize}
+	</select>
+	<select id="getAllXuehanyu" resultType="com.example.demo.entity.Xuehanyu">
+		select * from xuehanyue order by id asc;
+	</select>
+	<select id="getXCbyId" parameterType="int" resultType="com.example.demo.entity.Xuehanyucategory">
+		select id,pid,Author as author,Title as title,Title_uri as title_uri from xuehanyucategory
+		where pid=#{cid} order by id asc;
+	</select>
+	<select id="getXDbyId" parameterType="int" resultType="com.example.demo.entity.Xuehanyudetail">
+		select * from xuehanyudetail where pid=#{id}
+	</select>
+	<select id="getXHYCount" resultType="int">
+		select count(*) from xuehanyudetail where title like '%${con}%' or author like '%${con}%' or contson like '%${con}%' order by id asc
+	</select>
+	<select id="getXDList" resultType="com.example.demo.entity.Xuehanyudetail">
+		select * from xuehanyudetail where title like '%${con}%' or author like '%${con}%' or contson like '%${con}%' order by id asc limit #{pageStart},#{pageSize}
+	</select>
+	<insert id="saveFeedBack" parameterType="com.example.demo.entity.FeedBack">
+		insert into feed_back(type,con_tel,pro_model,in_text,img_path,uid,create_date) values(#{type},#{conTel},#{proModel},#{inText},#{imgPath},#{uid},#{createDate})
+	</insert>
+	<select id="getAllFB" resultType="com.example.demo.entity.FeedBack">
+		select * from feed_back order by create_date desc
+	</select>
+	<select id="getMaterialPage" resultMap="materialRM">
+		select * from material 
+		<where>
+			<if test="material.publishDate!=null">
+				and publish_date like '${material.publishDate}%'
+			</if>
+		</where>
+		order by publish_date desc limit #{pageStart},#{pageSize} 
+	</select>
+	<select id="getMaterialCount" resultType="int" parameterType="com.example.demo.entity.Material">
+		select count(*) from material 
+		<where>
+			<if test="publishDate!=null">
+				and publish_date like '${publishDate}%'
+			</if>
+		</where>
+	</select>
+	<update id="setMaterialState" >
+		update material set state=#{type} where id=#{id}
+	</update>
+	<insert id="addZan" parameterType="com.example.demo.entity.Zan">
+		insert into zan(m_id,u_id,create_date) 
+		select #{mId},#{uId},#{createDate} from DUAL 
+		where not exists (select 1 from zan where m_id=#{mId} and u_id=#{uId})
+	</insert>
+	<update id="addMzan" parameterType="Long">
+		update material set zan_count=zan_count+1 where id=#{mId}
+	</update>
+	<delete id="removeZan" >
+		delete from zan where m_id=#{mId} and u_id=#{uId}
+	</delete>
+	<update id="subtractMzan" parameterType="Long">
+		update material set zan_count=zan_count-1 where id=#{mId}
+	</update>
+	<select id="getZan" resultType="com.example.demo.entity.Zan">
+		select id,m_id mId,u_id uId,create_date createDate from zan where m_id=#{mId} and u_id=#{uId}
+	</select>
+	<select id="getSC" resultType="com.example.demo.entity.Shoucang">
+		select id,m_id mId,u_id uId from shoucang where m_id=#{mId} and u_id=#{uId}
+	</select>
+	<select id="getMcountByCon" resultType="int">
+		select count(*) from material WHERE
+		<if test="label!=null">
+		 label=#{label} and state=0 or
+		</if>
+		 story like '%${con}%' and state=0;
+	</select>
+	<select id="getMByCon" resultType="com.example.demo.entity.vo.Materialvo">
+		select u.id as uId,u.nick_name as nickName,u.avatar_url as avatarUrl,m.id as mId,m.user_id as userId,
+		m.story,m.label,m.img_path as imgPath,m.collect_count as collectCount,m.print_count as printCount,
+		m.zan_count as zanCount,m.publish_date as publishDate from material m left join 
+		user u on m.user_id=u.id where 
+		<if test="label!=null">
+		 m.label=#{label} and m.state=0 or 
+		</if>
+		 m.story like '%${con}%' and m.state=0 order by 
+		m.publish_date desc limit #{pageStart},#{pageSize}
+	</select>
+	<select id="getOneFriend" resultType="com.example.demo.entity.FriendList">
+		select id,uid,fid,create_date as createDate from friend_list where uid=#{uid} and fid=#{id} 
+	</select>
+	<insert id="savePrint" parameterType="com.example.demo.entity.Print">
+		insert into print(mid,uid,create_date) values(#{mid},#{uid},#{createDate})
+	</insert>
+	<select id="getSCDynamic" parameterType="Long" resultType="com.example.demo.entity.vo.DynamicVo">
+		select u.id uid,u.nick_name nickName,u.avatar_url avatarUrl,m.img_path mUrl,sc.create_date createDate from shoucang sc,material m,user u where sc.u_id=u.id and sc.m_id=m.id and m.user_id=#{uid} order by sc.Create_date desc
+	</select>
+	<select id="getDZDynamic" parameterType="Long" resultType="com.example.demo.entity.vo.DynamicVo">
+		select u.id uid,u.nick_name nickName,u.avatar_url avatarUrl,m.img_path mUrl,z.create_date createDate from zan z,material m,user u where z.u_id=u.id and z.m_id=m.id and m.user_id=#{uid} order by z.Create_date desc 
+	</select>
+	<select id="getPRDynamic" parameterType="Long" resultType="com.example.demo.entity.vo.DynamicVo">
+		select u.id uid,u.nick_name nickName,u.avatar_url avatarUrl,m.img_path mUrl,p.create_date createDate from print p,material m,user u where p.uid=u.id and p.mid=m.id and m.user_id=#{uid} order by p.Create_date desc 
+	</select>
+	<select id="getFSDynamic" parameterType="Long" resultType="com.example.demo.entity.vo.DynamicVo">
+		select u.id uid,u.nick_name nickName,u.avatar_url avatarUrl,gz.start_date createDate from guanzhu gz,user u where gz.guanzhu_id=#{uid} and gz.user_id=u.id and gz.state=1 order by gz.start_date desc 
+	</select>
+	<select id="getFList" parameterType="Long" resultType="com.example.demo.entity.FriendList">
+		select f.id,f.uid,u.uid fPPID,f.fid,u.nick_name fnickName,u.avatar_url favatarUrl,f.create_date createDate from friend_list f,user u where f.uid=#{uid} and f.fid=u.id
+	</select>
+	<select id="getTJFList" resultType="com.example.demo.entity.User">
+		select * from user where id not in 
+		<foreach collection="iidList" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+		limit 0,10
+	</select>
+	<insert id="addAAF" parameterType="com.example.demo.entity.ApplyAddFriend">
+		insert into apply_addfriend(uid,auid,applay_date,state) 
+		select #{uid},#{auid},#{applayDate},#{state} from DUAL  
+		where not exists (select 1 from apply_addfriend where uid=#{uid} and auid=#{auid} and state=0)
+	</insert>
+	<insert id="addMessage" parameterType="com.example.demo.entity.Message">
+		insert into message(uid,to_uid,img_path,send_time,state) values(#{uid},#{toUid},#{imgPath},#{sendTime},#{state})
+	</insert>
+	<select id="getAAFList" parameterType="int" resultType="com.example.demo.entity.vo.ApplyAddFriendVo">
+		select aaf.uid uid,aaf.auid auid,aaf.applay_date applayDate,u.nick_name nickName,u.avatar_url avatarUrl,aaf.state state 
+		from apply_addfriend aaf,user u where aaf.auid=#{uid} and aaf.state=0 and aaf.uid=u.id order by aaf.applay_date desc
+	</select>
+	<select id="getUMSender" parameterType="int" resultType="com.example.demo.entity.vo.MessageVo">
+		select m.uid uid,m.to_uid touid,u.nick_name nickName,u.avatar_url avatarUrl,count(m.uid) count,max(m.send_time) lastDate  from message m,user u where 
+		m.to_uid=#{uid} and m.uid=u.id and m.state=0 group by m.uid
+	</select>
+	<select id="getChatCount" resultType="int">
+		select count(*) from message where uid=#{uid} and to_uid=#{touid} or uid=#{touid} and to_uid=#{uid} order by send_time DESC
+	</select>
+	<select id="getChat" resultType="com.example.demo.entity.Message">
+		select id,uid,to_uid toUid,img_path imgPath,send_time sendTime,state from message where uid=#{uid} and to_uid=#{touid} or uid=#{touid} and to_uid=#{uid} order by send_time DESC limit #{pageStart},#{pageSize}
+	</select>
+	<update id="checkAAF">
+		update apply_addfriend set state=#{state} where uid=#{uid} and auid=#{auid} and state=0
+	</update>
+	<insert id="addFriendList">
+		insert into friend_list(uid,fid,create_date) 
+		select #{uid},#{fid},#{createDate} from DUAL  
+		where not exists (select 1 from friend_list where uid=#{uid} and fid=#{fid})
+	</insert>
+	<delete id="delFL" parameterType="int">
+		delete from friend_list where uid=#{uid} and fid=#{fid} or uid=#{fid} and fid=#{uid}
+	</delete>
+	<update id="editMessageState">
+		update message set state=#{state} where id=#{mid}
+	</update>
+	<update id="editAllMessageState">
+		update message set state=#{state} where uid=#{uid} and to_uid=#{touid}
+	</update>
+	<update id="addCoin">
+		update user set coin=coin+#{number} where id=#{uid}
+	</update>
+	<select id="getCoinCount" resultType="int">
+		select count(number) from get_coin_record where uid=#{uid} and type=#{type} and create_date like '${today}%'
+	</select>
+	<select id="getCoinRecord" resultType="com.example.demo.entity.GetCoinRecord">
+		select id,uid,type,number,create_date create_date from get_coin_record where uid=#{uid} and type=#{type} and create_date like '${date}%'
+	</select>
+	<insert id="addGetCoinRecord" parameterType="com.example.demo.entity.GetCoinRecord">
+		insert into get_coin_record(uid,type,number,create_date) 
+		select #{uid},#{type},#{number},#{createDate} from DUAL 
+		where not exists (select 1 from get_coin_record where uid=#{uid} and type=1 and create_date like CONCAT(SUBSTRING_INDEX(#{createDate},' ',1),'%'))
+	</insert>
+	<select id="getGZcount" parameterType="Long" resultType="int">
+		select count(*) from guanzhu where user_id=#{userId} and state=1;
+	</select>
+	<select id="getGZUbyPage" resultMap="userRM">
+		select u.id id,u.avatar_url avatar_url,u.nick_name nick_name,u.guanzhu guanzhu,u.fans fans  
+		from guanzhu gz left join user u on gz.guanzhu_id=u.id where gz.user_id=#{userId} and gz.state=1 and gz.guanzhu_id=u.id limit #{pageStart},#{pageSize};
+	</select>
+	<select id="getFScount" parameterType="Long" resultType="int">
+		select count(*) from guanzhu where guanzhu_id=#{id} and state=1; 
+	</select>
+	<select id="getFSUbyPage" resultMap="userRM">
+		select u.id id,u.avatar_url avatar_url,u.nick_name nick_name,u.guanzhu guanzhu,u.fans fans  
+		from guanzhu gz left join user u on gz.user_id=u.id where gz.guanzhu_id=#{id} and gz.state=1 and gz.user_id=u.id limit #{pageStart},#{pageSize};
+	</select>
+	<select id="getMById" parameterType="Long" resultMap="materialRM">
+		select * from material where id=#{mId}
+	</select>
+	<select id="getUserMCount" parameterType="Long" resultType="int">
+		select count(*) from material where user_id=#{id} and state=0
+	</select>
+	<select id="getMyMPage" resultMap="materialRM">
+		select * from material where user_id=#{uId} and state=0 order by publish_date desc limit #{pageStart},#{pageSize}
+	</select>
+	<select id="getMyMCount" resultType="int">
+		select count(*) from shoucang where u_id=#{uid};
+	</select>
+	<update id="removeUnionId" parameterType="String">
+		update user set union_id=null where union_id=#{unionId} 
+	</update>
+	<update id="removeOfficialOpenId" parameterType="String">
+		update user set official_open_id=null where official_open_id=#{officialOpenId} 
+	</update>
+	<select id="getVersion" resultType="com.example.demo.entity.Version">
+		select id,version_now versionNow,version_next versionNext from version where id=1;
+	</select>
+	<update id="setVersion">
+		update version set version_now=#{versionNow},version_next=#{versionNext} where id=1;
+	</update>
+	<select id="getLastChatDate" resultType="String">
+		select MAX(send_time) from message where uid=#{uid} and to_uid=#{toUid} or uid=#{toUid} and to_uid=#{uid}
+	</select>
+	<select id="getMyXueke" resultType="com.example.demo.entity.Xueke">
+		select xk.id,xk.xd,xk.chid,xk.xdName,xk.chidName from xueke xk,question_collect qc where qc.pharse_id=xk.xd and qc.subject_id=xk.chid and qc.pharse_id=#{xdid} and qc.uid=#{uid}
+	</select>
+	<select id="getNewChatMessage" resultType="com.example.demo.entity.Message">
+		select id,uid,to_uid toUid,img_path imgPath,send_time sendTime,state from message where uid=#{uid} and to_uid=#{toUid} order by send_time DESC limit 0,1;
+	</select>
+	<select id="getCountUser" resultType="int">
+		select count(*) from  user 
+	</select>
+	<select id="getAllTJFList1" resultType="com.example.demo.entity.User">
+		select * from user where id not in 
+		<foreach collection="iidList" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	</select>
+	<select id="getAllTJFList2" resultType="com.example.demo.entity.User">
+		select * from user where id not in 
+		<foreach collection="iidList" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+		limit #{pageStart},50
+	</select>
+	<insert id="addChatList" parameterType="com.example.demo.entity.ChatList">
+		insert into chat_list(uid,to_uid,send_time,state) 
+		select #{uid},#{toUid},#{sendTime},#{state} from DUAL  
+		where not exists (select 1 from chat_list where uid=#{uid} and to_uid=#{toUid})
+	</insert>
+	<update id="editChatList" parameterType="com.example.demo.entity.ChatList">
+		update chat_list set send_time=#{sendTime},state=0 where uid=#{uid} and to_uid=#{toUid}
+	</update>
+	<select id="getAllMessageList" parameterType="int" resultType="com.example.demo.entity.vo.MessageVo">
+		select m.uid uid,m.to_uid touid,u.nick_name nickName,u.avatar_url avatarUrl,m.send_time lastDate  from chat_list m,user u where 
+		m.uid=#{uid} and m.to_uid=u.id and m.state=0 order by m.send_time desc
+	</select>
+	<select id="getMCount" resultType="int">
+		select count(uid) from message where 
+		to_uid=#{uid} and uid=#{touid} and state=0
+	</select>
+	<update id="removeChat">
+		update chat_list set state=1 where uid=#{uid} and to_uid=#{touid}
+	</update>
+	<select id="getFontV2" resultType="String">
+		select distinct font from ${tableName}
+	</select>
+	<select id="getDulQids" parameterType="String" resultType="int">
+		select question_id from ${tableName} GROUP BY question_id HAVING COUNT(question_id)>1;
+	</select>
+	<select id="getDulRecs" resultMap="questionsRM">
+		select * from ${tableName} where question_id=#{id}; 
+	</select>
+	<delete id="delDulQ">
+		delete from ${tableName} where Rec=#{rec}
+	</delete>
+	<update id="updateQC">
+		update catetree set question_count=#{totalCount} where Rec=#{rec}
+	</update>
+	<select id="getSMByCon" resultType="com.example.demo.entity.vo.Materialvo">
+		select u.id as uId,u.nick_name as nickName,u.avatar_url as avatarUrl,m.id as mId,m.user_id as userId,
+		m.story,m.label,m.img_path as imgPath,m.collect_count as collectCount,m.print_count as printCount,
+		m.zan_count as zanCount,m.publish_date as publishDate from (select * from material where 
+		<if test="label1!=null">
+		 label=#{label1} and state=0 or 
+		</if>
+		 story like '%${con1}%' and state=0	
+		) m left join 
+		user u on m.user_id=u.id where 
+		<if test="label2!=null">
+		 m.label=#{label2} and m.state=0 or 
+		</if>
+		 m.story like '%${con2}%' and m.state=0
+	</select>
+	<select id="getK12Config" resultType="com.example.demo.entity.K12Config">
+		select id,is_show_edu as isShowEdu from K12Config where id=1;
+	</select>
+	<select id="getAllMaterial" resultMap="materialRM">
+		select * from material where state=0;
+	</select>
+	<update id="upImagePath">
+		update material set img_path=#{toPath} where id=#{mid};
+	</update>
+</mapper>

@@ -1,0 +1,136 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>全屋定制</title>
+	<link href="/static/css/customize.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="../static/js/jquery-3.1.1.min.js"></script>
+</head>
+<body>
+	<header>
+		<%@ include file="/WEB-INF/jsp/w/web/header.jsp"%>
+		<%@ include file="/WEB-INF/jsp/w/web/kong.jsp"%>
+		<div class="daohang">
+			<div class="daohang_div">
+				<div style="cursor:pointer">全部</div>
+				<div style="cursor:pointer">欧式</div>
+				<div style="cursor:pointer">新中式</div>
+				<div style="cursor:pointer">地中海</div>
+				<div style="cursor:pointer">现代简约</div>
+				<div style="cursor:pointer">轻奢极简</div>
+			</div>
+		</div>
+		<div class="header_img"><img alt="" src="../static/images/customize.png"></div>
+		
+	</header>
+	<!-- <div class="video" id="video_url">
+		<div class="close" onclick="close_video()"><img alt="" src="../static/images/close.png"></div>
+		<video controls id="vodeo">
+		</video>
+		
+	</div> -->
+	<div class="customize">
+		<div class="customize_img">
+			<div class="customize_img_1">
+				<!-- <div class="customize_img_1_1">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic1.png" style="width: 662px;height: 372px;"></div>
+					<div class="customize_img_1_1_stop" onclick="open_video()"><img alt="" src="../static/images/stop.png"></div>
+					<div class="customize_img_1_1_text">麦萌 | 甜而不腻的Baby blue</div>
+				</div>
+				<div class="customize_img_1_1">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic2.png"></div>
+					<div class="customize_img_1_1_text">简约蓝白之家</div>
+				</div> -->
+			
+			</div>
+		</div>
+	</div>
+	<%@ include file="/WEB-INF/jsp/w/web/mark.jsp"%>
+	<%@ include file="/WEB-INF/jsp/w/web/footer.jsp"%>
+</body>
+<script type="text/javascript">
+	var video
+	var totalTime = 0;
+	var currentTime = 0;
+	onload=function(){
+		$("#customize").css("color","rgba(255,255,255,1)")
+		var url = "/customize/onload"
+		$.ajax({
+			"url":url,
+			"type":"GET",
+			"dataType":"json",
+			success:function(json){
+				console.log(json)
+				var list = json.objs;
+				if(json.resInteger==200){
+					for(var i=0;i<list.length;i++){
+						var op = ""
+						if(list[i].video!=null){
+							op="<div class='customize_img_1_1' onclick=click_detail("+list[i].id+") style='cursor:pointer'>"+
+							"<div class='customize_img_1_1_img'><img alt='' src='"+list[i].img+"' style='width: 662px;height: 372px;'></div>"+
+							"<div class='customize_img_1_1_stop' ><img alt='' src='../static/images/stop.png'></div>"+
+							"<div class='customize_img_1_1_text'>"+list[i].title+"</div>"+
+						"</div>";
+						}else{
+							op="<div class='customize_img_1_1' onclick=click_detail("+list[i].id+") style='cursor:pointer'>"+
+							"<div class='customize_img_1_1_img'><img alt='' src='"+list[i].img+" 'style='width: 662px;height: 372px;'></div>"+
+							"<div class='customize_img_1_1_text'>"+list[i].title+"</div>"+
+						"</div>"
+						}
+						$(".customize_img_1").append(op);
+					}
+				}else if(json.resInteger==600){
+					alert("设计师们还在加紧设计中");
+					
+				}
+			},
+			error:function(){
+				alert("全屋定制出错了");
+			}
+		})
+	
+	}
+	function click_detail(id){
+
+		location.href = "/customize/getvideo?id="+id
+		
+	}
+	/* function open_video(id){
+		console.log(id)
+		$("video").remove()
+		var url = "/customize/getvideo?id="+id
+		$.ajax({
+			"url":url,
+			"type":"GET",
+			"dataType":"text",
+			success:function(json){
+				console.log(json)
+				
+				var op = "<video controls >"+
+	    		"<source src='"+json+".mp4' type='video/mp4'>"+
+	   			"<source src='"+json+".ogg' type='video/ogg' >"+  
+	    		"<source src='"+json+".webm' type='video/webm' >"+ 
+	    		"<object data='movie.mp4' width='320px' height='240px'>"+    
+	        		"<embed src='"+json+".swf' width='320px' height='240px'>"+  
+	    		"</object>"+ 
+			"</video>";
+				$("#video_url").append(op);
+				video =  document.querySelector('video');
+			},
+		
+		})
+		
+		$(".video").css("display","block")
+		video.currentTime = totalTime;
+		video.play();
+	}
+	function close_video(){
+		
+		video.pause();
+		$("#video_url").css("display","none")
+	} */
+	
+</script>
+</html>

@@ -1,0 +1,103 @@
+package com.example.demo.utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import net.coobird.thumbnailator.Thumbnails;  
+/** 
+ * 图片压缩处理 
+ * 详情 https://rensanning.iteye.com/blog/1545708
+ */  
+public class ImgCompress {  
+	private static String VIEW_PATH="/images";
+	private static String DEFAULT_PATH="c://images";
+	
+	/**
+	 * @param file   上传的文件
+	 * @param b		  压缩的比例
+	 * @return
+	 */
+	public String Compress(@RequestParam("file")MultipartFile file,Double b) {
+		//文件名
+		String realName = file.getOriginalFilename();
+		//路径
+		String realPath;
+		//后缀
+		String suffix = getSuffix(realName);
+		System.err.println(suffix);
+		//前缀
+		String prefix = CommonUtil.getNonceStr(5) + createFilePath1();
+		realPath = DEFAULT_PATH + createFilePath();
+		File f = new File(realPath);
+		if(!f.exists()){
+			f.mkdirs();
+		}
+		String completePath = realPath + "/" + prefix + "." + suffix;
+		String returnStr = completePath.replace(DEFAULT_PATH, VIEW_PATH);
+		
+		File dest = new File(completePath); // 保存位置
+		InputStream is =null;
+		try {
+			is=file.getInputStream();
+			// 先尝试压缩并保存图片
+			//Thumbnails.of(is).scale(0.8f).outputQuality(0.25f).toFile(dest);
+			Thumbnails.of(is).scale(b).toFile(completePath);
+		} catch (IOException e) {
+			try {
+				// 失败了再用springmvc自带的方式
+				file.transferTo(dest);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}finally {
+			if(is!=null){
+				try {
+					is.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return returnStr;
+	}
+	//获取后缀
+	public static String getSuffix(String fileName){
+		String suffix=null;
+		int position = fileName.lastIndexOf(".");
+		if(position!=-1){
+			suffix=fileName.substring(position+1);
+		}
+		
+		return suffix;
+	}
+	//生成路径
+	public static String createFilePath(){
+		String thisTime=null;
+		SimpleDateFormat sdf=new SimpleDateFormat("/yyyy/MM/dd");
+		thisTime=sdf.format(System.currentTimeMillis());
+		return thisTime;
+	}
+	//生成路径
+	public static String createFilePath1() {
+		String thisTime = null;
+		SimpleDateFormat sdf = new SimpleDateFormat("HHmmssSSS");
+		thisTime = sdf.format(System.currentTimeMillis());
+		return thisTime;
+	}
+	//获取前缀
+	public static String getPrefix(String fileName){
+		String prefix=null;
+		int position = fileName.lastIndexOf(".");
+		if(position!=-1){
+			prefix=fileName.substring(0,position);
+		}
+		
+		return prefix;
+	}
+		
+}  

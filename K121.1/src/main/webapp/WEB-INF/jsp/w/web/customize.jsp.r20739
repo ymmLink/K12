@@ -1,0 +1,97 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>全屋定制</title>
+	<link href="/static/css/customize.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="../static/js/jquery-3.1.1.min.js"></script>
+</head>
+<body>
+	<header>
+		<%@ include file="/WEB-INF/jsp/w/web/header.jsp"%>
+		<%@ include file="/WEB-INF/jsp/w/web/kong.jsp"%>
+		<div class="daohang">
+			<div class="daohang_div">
+				<div>全部</div>
+				<div>欧式</div>
+				<div>新中式</div>
+				<div>地中海</div>
+				<div>现代简约</div>
+				<div>轻奢极简</div>
+			</div>
+		</div>
+		<div class="header_img"><img alt="" src="../static/images/customize.png"></div>
+		
+	</header>
+	<div class="video">
+		<div class="close" onclick="close_video()"><img alt="" src="../static/images/close.png"></div>
+		<video controls>  
+    		<source src="/static/video/movie.mp4" type="video/mp4">  
+   			<source src="/static/video/movie.ogg" type="video/ogg">  
+    		<source src="/static/video/movie.webm" type="video/webm"> 
+    		<object data="movie.mp4" width="320px" height="240px">    
+        		<embed src="/static/video/movie.swf" width="320px" height="240px">  
+    		</object> 
+		</video>
+		
+	</div>
+	<div class="customize">
+		<div class="customize_img">
+			<div class="customize_img_1">
+				<div class="customize_img_1_1">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic1.png"></div>
+					<div class="customize_img_1_1_stop" onclick="open_video()"><img alt="" src="../static/images/stop.png"></div>
+					<div class="customize_img_1_1_text">麦萌 | 甜而不腻的Baby blue</div>
+				</div>
+				<div class="customize_img_1_2">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic2.png"></div>
+					<div class="customize_img_1_1_text">简约蓝白之家</div>
+				</div>
+			</div>
+			
+			<div class="customize_img_2">
+				<div class="customize_img_1_1">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic3.png"></div>
+					<div class="customize_img_1_1_text">简约悠闲之家</div>
+				</div>
+				<div class="customize_img_1_2">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic4.png"></div>
+					<div class="customize_img_1_1_text">简约舒适之家</div>
+				</div>
+			</div>
+			
+			<div class="customize_img_3">
+				<div class="customize_img_1_1">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic5.png"></div>
+					<div class="customize_img_1_1_text">简约温情之家</div>
+				</div>
+				<div class="customize_img_1_2">
+					<div class="customize_img_1_1_img"><img alt="" src="../static/images/customize/customize_pic6.png"></div>
+					<div class="customize_img_1_1_text">灰蓝色调的简约之家</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<%@ include file="/WEB-INF/jsp/w/web/mark.jsp"%>
+	<%@ include file="/WEB-INF/jsp/w/web/footer.jsp"%>
+</body>
+<script type="text/javascript">
+	var video =  document.querySelector('video');
+	var totalTime = 0;
+	var currentTime = 0;
+	onload=function(){
+		$("#customize").css("color","rgba(255,255,255,1)")
+	}
+	function open_video(){
+		$(".video").css("display","block")
+		video.currentTime = totalTime;
+		video.play();
+	}
+	function close_video(){
+		video.pause();
+		$(".video").css("display","none")
+	}
+</script>
+</html>
